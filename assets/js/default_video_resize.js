@@ -38,12 +38,12 @@
         layer.id = layerId;
         layer.innerHTML = `
             <div class="tv-text-container">
-                <span class="tv-char" style="color:#33383C; animation-delay:0s">T</span>
-                <span class="tv-char" style="color:#33383C; animation-delay:0.04s">V</span>
-                <span class="tv-char" style="color:#0079FB; animation-delay:0.08s">A</span>
+                <span class="tv-char" style="color:#33383C; animation-delay:0s">L</span>
+                <span class="tv-char" style="color:#33383C; animation-delay:0.04s">e</span>
+                <span class="tv-char" style="color:#0079FB; animation-delay:0.08s">J</span>
                 <span class="tv-char" style="color:#0079FB; animation-delay:0.12s">u</span>
-                <span class="tv-char" style="color:#0079FB; animation-delay:0.16s">t</span>
-                <span class="tv-char" style="color:#0079FB; animation-delay:0.20s">o</span>
+                <span class="tv-char" style="color:#0079FB; animation-delay:0.16s">T</span>
+                <span class="tv-char" style="color:#0079FB; animation-delay:0.20s">V</span>
             </div>`;
         document.documentElement.appendChild(layer);
     }

@@ -19,8 +19,8 @@ class _TvPageState extends State<TvPage> {
   //static const String homeUrl = 'https://www.sztv.com.cn/dianshi.shtml?id=7868';
   //static const String homeUrl = 'https://www.douyin.com/?recommend=1&from_nav=1';
   //static const String homeUrl = 'https://test.ustc.edu.cn/';
-  static const String homeUrl =
-      'https://www.yangshipin.cn/tv/home?pid=600001859';
+  //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
+  static const String homeUrl = 'https://iswtv.swrtv.com/live/xwzhpd.m3u8';
   //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
 
   late final WebViewController controller;
