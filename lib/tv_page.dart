@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lejutv/model/channel.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -19,14 +21,13 @@ class _TvPageState extends State<TvPage> {
   //static const String homeUrl = 'https://www.sztv.com.cn/dianshi.shtml?id=7868';
   //static const String homeUrl = 'https://www.douyin.com/?recommend=1&from_nav=1';
   //static const String homeUrl = 'https://test.ustc.edu.cn/';
-  //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
-  static const String homeUrl = 'https://iswtv.swrtv.com/live/xwzhpd.m3u8';
-  //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
-
   late final WebViewController controller;
   static const String _videoResizeScriptAsset =
       'assets/js/default_video_resize.js';
+  static const String _channelsAsset = 'assets/data/channels.json';
   String? _videoResizeScript;
+  List<Channel> channels = [];
+  int currentChannelIndex = 0;
   final FocusNode focusNode = FocusNode();
 
   Timer? hintTimer;
@@ -65,7 +66,17 @@ class _TvPageState extends State<TvPage> {
   Future<void> initializeWebView() async {
     // Load the same bundled resize script once, then inject it at navigation
     // start and retry after the document has finished loading.
-    _videoResizeScript = await rootBundle.loadString(_videoResizeScriptAsset);
+    final assets = await Future.wait([
+      rootBundle.loadString(_videoResizeScriptAsset),
+      rootBundle.loadString(_channelsAsset),
+    ]);
+    _videoResizeScript = assets[0];
+    channels = (jsonDecode(assets[1]) as List<dynamic>)
+        .map((item) => Channel.fromJson(item as Map<String, dynamic>))
+        .toList(growable: false);
+    if (channels.isEmpty) {
+      throw const FormatException('频道列表为空');
+    }
     await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     await controller.setBackgroundColor(Colors.black);
     await controller.setUserAgent(
@@ -109,7 +120,23 @@ class _TvPageState extends State<TvPage> {
         },
       ),
     );
-    await controller.loadRequest(Uri.parse(homeUrl));
+    await loadChannel(currentChannelIndex);
+  }
+
+  Future<void> loadChannel(int index) async {
+    if (channels.isEmpty) return;
+    currentChannelIndex = (index + channels.length) % channels.length;
+    final channel = channels[currentChannelIndex];
+    if (mounted) {
+      setState(() => status = '正在加载：${channel.name}');
+    }
+    await controller.loadRequest(Uri.parse(channel.url));
+    showHint('正在播放：${channel.name}');
+  }
+
+  Future<void> switchChannel(int delta) async {
+    if (channels.isEmpty) return;
+    await loadChannel(currentChannelIndex + delta);
   }
 
   Future<void> injectVideoResizeScript() async {
@@ -320,15 +347,8 @@ class _TvPageState extends State<TvPage> {
 
     if (key == LogicalKeyboardKey.arrowUp ||
         key == LogicalKeyboardKey.arrowDown) {
-      final up = key == LogicalKeyboardKey.arrowUp;
-
-      sendKey(
-        up ? 'ArrowUp' : 'ArrowDown',
-        up ? 'ArrowUp' : 'ArrowDown',
-        up ? 38 : 40,
-      );
-
-      showHint(up ? '上一个视频' : '下一个视频');
+      final delta = key == LogicalKeyboardKey.arrowDown ? 1 : -1;
+      switchChannel(delta);
       return KeyEventResult.handled;
     }
 

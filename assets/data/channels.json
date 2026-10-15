@@ -1,0 +1,295 @@
+
+[
+  {
+    "name": "CCTV-1 综合",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600001859"
+  },
+  {
+    "name": "CCTV-2 财经",
+    "url": "https://tv.cctv.com/live/cctv2/"
+  },
+  {
+    "name": "CCTV-3 综艺",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600001801"
+  },
+  {
+    "name": "CCTV-4 中文国际（亚）",
+    "url": "https://tv.cctv.com/live/cctv4/"
+  },
+  {
+    "name": "CCTV-5 体育",
+    "url": "https://tv.cctv.com/live/cctv5/"
+  },
+  {
+    "name": "CCTV-5+ 体育赛事",
+    "url": "https://tv.cctv.com/live/cctv5plus/"
+  },
+  {
+    "name": "CCTV-6 电影",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600108442"
+  },
+  {
+    "name": "CCTV-7 国防军事",
+    "url": "https://tv.cctv.com/live/cctv7/"
+  },
+  {
+    "name": "CCTV-8 电视剧",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600001803"
+  },
+  {
+    "name": "CCTV-9 纪录",
+    "url": "https://tv.cctv.com/live/cctvjilu/"
+  },
+  {
+    "name": "CCTV-10 科教",
+    "url": "https://tv.cctv.com/live/cctv10/"
+  },
+  {
+    "name": "CCTV-11 戏曲",
+    "url": "https://tv.cctv.com/live/cctv11/"
+  },
+  {
+    "name": "CCTV-12 社会与法",
+    "url": "https://tv.cctv.com/live/cctv12/"
+  },
+  {
+    "name": "CCTV-13 新闻",
+    "url": "https://tv.cctv.com/live/cctv13/"
+  },
+  {
+    "name": "CCTV-14 少儿",
+    "url": "https://tv.cctv.com/live/cctvchild/"
+  },
+  {
+    "name": "CCTV-15 音乐",
+    "url": "https://tv.cctv.com/live/cctv15/"
+  },
+  {
+    "name": "CCTV-16 奥林匹克",
+    "url": "https://tv.cctv.com/live/cctv16/"
+  },
+  {
+    "name": "CCTV-17 农业农村",
+    "url": "https://tv.cctv.com/live/cctv17/"
+  },
+  {
+    "name": "CCTV-4 中文国际（欧）",
+    "url": "https://tv.cctv.com/live/cctveurope/"
+  },
+  {
+    "name": "CCTV-4 中文国际（美）",
+    "url": "https://tv.cctv.com/live/cctvamerica/"
+  },
+  {
+    "name": "CCTV-4k",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002264"
+  },
+  {
+    "name": "CCTV-8k",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600156816"
+  },
+  {
+    "name": "CCTV风云剧场",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600099658"
+  },
+  {
+    "name": "CCTV第一剧场",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600099655"
+  },
+  {
+    "name": "CCTV怀旧剧场",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600099620"
+  },
+  {
+    "name": "北京卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002309"
+  },
+  {
+    "name": "江苏卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002521"
+  },
+  {
+    "name": "东方卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002483"
+  },
+  {
+    "name": "浙江卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002520"
+  },
+  {
+    "name": "湖南卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002475"
+  },
+  {
+    "name": "湖北卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002508"
+  },
+  {
+    "name": "广东卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002485"
+  },
+  {
+    "name": "广西卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002509"
+  },
+  {
+    "name": "黑龙江卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002498"
+  },
+  {
+    "name": "海南卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002506"
+  },
+  {
+    "name": "重庆卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002531"
+  },
+  {
+    "name": "深圳卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002481"
+  },
+  {
+    "name": "四川卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002516"
+  },
+  {
+    "name": "河南卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002525"
+  },
+  {
+    "name": "东南卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002484"
+  },
+  {
+    "name": "贵州卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002490"
+  },
+  {
+    "name": "江西卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002503"
+  },
+  {
+    "name": "辽宁卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002505"
+  },
+  {
+    "name": "安徽卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002532"
+  },
+  {
+    "name": "河北卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002493"
+  },
+  {
+    "name": "山东卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600002513"
+  },
+  {
+    "name": "天津卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600152137"
+  },
+  {
+    "name": "吉林卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190405"
+  },
+  {
+    "name": "陕西卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190400"
+  },
+  {
+    "name": "宁夏卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190737"
+  },
+  {
+    "name": "内蒙古卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190401"
+  },
+  {
+    "name": "云南卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190402"
+  },
+  {
+    "name": "山西卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190407"
+  },
+  {
+    "name": "青海卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190406"
+  },
+  {
+    "name": "西藏卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600190403"
+  },
+  {
+    "name": "新疆卫视",
+    "url": "https://www.yangshipin.cn/tv/home?pid=600152138"
+  },
+  {
+    "name": "北京卫视（官网）",
+    "url": "https://www.btime.com/btv/btvsy_index"
+  },
+  {
+    "name": "江苏卫视（官网）",
+    "url": "https://live.jstv.com/"
+  },
+  {
+    "name": "东方卫视（官网）",
+    "url": "https://live.kankanews.com/huikan?id=1"
+  },
+  {
+    "name": "浙江卫视（官网）",
+    "url": "https://www.cztv.com/liveTV"
+  },
+  {
+    "name": "广东卫视（官网）",
+    "url": "https://www.gdtv.cn/tvChannelDetail/43"
+  },
+  {
+    "name": "河南卫视（官网）",
+    "url": "https://static.hntv.tv/kds/"
+  },
+  {
+    "name": "贵州卫视（官网）",
+    "url": "https://www.gzstv.com/tv/ch01"
+  },
+  {
+    "name": "河北卫视（官网）",
+    "url": "https://www.hebtv.com/19/19js/st/xdszb/index.shtml?index=0"
+  },
+  {
+    "name": "山东卫视（官网）",
+    "url": "https://v.iqilu.com/live/sdtv/"
+  },
+  {
+    "name": "内蒙古卫视（官网）",
+    "url": "https://www.nmtv.cn/liveTv"
+  },
+  {
+    "name": "新疆卫视（官网）",
+    "url": "https://www.xjtvs.com.cn/column/tv/434"
+  },
+  {
+    "name": "南京新闻综合（http 测试）",
+    "url": "http://www.nbs.cn/live/"
+  },
+  {
+    "name": "汕尾新闻综合（m3u8 测试）",
+    "url": "https://iswtv.swrtv.com/live/xwzhpd.m3u8"
+  },
+  {
+    "name": "哔哩哔哩直播",
+    "url": "https://live.bilibili.com"
+  },
+  {
+    "name": "斗鱼直播",
+    "url": "https://www.douyu.com"
+  },
+  {
+    "name": "虎牙直播",
+    "url": "https://www.huya.com"
+  },
+  {
+    "name": "网络测速",
+    "url": "https://test.ustc.edu.cn/"
+  }
+]
