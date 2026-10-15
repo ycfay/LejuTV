@@ -20,6 +20,7 @@ class _DouyinPageState extends State<DouyinPage> {
   //static const String homeUrl = 'https://www.douyin.com/?recommend=1&from_nav=1';
   //static const String homeUrl = 'https://test.ustc.edu.cn/';
   static const String homeUrl = 'http://dog.wuyanshuo.cn/';
+  //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
 
   late final WebViewController controller;
   final FocusNode focusNode = FocusNode();
