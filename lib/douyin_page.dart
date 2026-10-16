@@ -17,7 +17,9 @@ class DouyinPage extends StatefulWidget {
 
 class _DouyinPageState extends State<DouyinPage> {
   //static const String homeUrl = 'https://www.sztv.com.cn/dianshi.shtml?id=7868';
-  static const String homeUrl = 'https://www.douyin.com/';
+  static const String homeUrl =
+      "https://www.douyin.com/?recommend=1&from_nav=1";
+
   //static const String homeUrl = 'https://test.ustc.edu.cn/';
   // Use the official HTTPS entry point instead of the old test endpoint.
   //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';

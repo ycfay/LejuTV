@@ -277,18 +277,6 @@
     "url": "https://iswtv.swrtv.com/live/xwzhpd.m3u8"
   },
   {
-    "name": "哔哩哔哩直播",
-    "url": "https://live.bilibili.com"
-  },
-  {
-    "name": "斗鱼直播",
-    "url": "https://www.douyu.com"
-  },
-  {
-    "name": "虎牙直播",
-    "url": "https://www.huya.com"
-  },
-  {
     "name": "网络测速",
     "url": "https://test.ustc.edu.cn/"
   }

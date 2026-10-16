@@ -36,7 +36,7 @@ class _StartPageState extends State<StartPage> {
                   NavTextButton(label: '视频', autofocus: true, onTap: () {}),
                   const SizedBox(width: 34),
                   NavTextButton(
-                    label: '直播',
+                    label: '电视',
                     onTap: () => _open(context, const TvPage()),
                   ),
                   const Spacer(),
