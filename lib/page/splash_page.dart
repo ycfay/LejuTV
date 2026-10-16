@@ -6,7 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lejutv/graphics/shader_manager.dart';
-import 'package:lejutv/start_page.dart';
+import 'package:lejutv/page/start_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

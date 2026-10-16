@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lejutv/components/nav_next_button.dart';
 import 'package:lejutv/components/source_card_button.dart';
-import 'package:lejutv/douyin_page.dart';
-import 'package:lejutv/kuaishou_page.dart';
-import 'package:lejutv/tv_page.dart';
+import 'package:lejutv/page/douyin_page.dart';
+import 'package:lejutv/page/kuaishou_page.dart';
+import 'package:lejutv/page/tv_page.dart';
 import 'package:lejutv/components/focus_icon_button.dart';
 
 class StartPage extends StatefulWidget {

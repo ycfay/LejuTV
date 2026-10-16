@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lejutv/model/channel.dart';
+import 'package:lejutv/stores/channel.storage.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -24,7 +24,6 @@ class _TvPageState extends State<TvPage> {
   late final WebViewController controller;
   static const String _videoResizeScriptAsset =
       'assets/js/default_video_resize.js';
-  static const String _channelsAsset = 'assets/data/channels.json';
   String? _videoResizeScript;
   List<Channel> channels = [];
   int currentChannelIndex = 0;
@@ -66,17 +65,16 @@ class _TvPageState extends State<TvPage> {
   Future<void> initializeWebView() async {
     // Load the same bundled resize script once, then inject it at navigation
     // start and retry after the document has finished loading.
-    final assets = await Future.wait([
-      rootBundle.loadString(_videoResizeScriptAsset),
-      rootBundle.loadString(_channelsAsset),
-    ]);
-    _videoResizeScript = assets[0];
-    channels = (jsonDecode(assets[1]) as List<dynamic>)
-        .map((item) => Channel.fromJson(item as Map<String, dynamic>))
-        .toList(growable: false);
+    _videoResizeScript = await rootBundle.loadString(_videoResizeScriptAsset);
+    channels = await ChannelStorage.instance.getChannels();
     if (channels.isEmpty) {
       throw const FormatException('频道列表为空');
     }
+    final savedIndex = ChannelStorage.instance.getSelectedChannelIndex();
+    currentChannelIndex =
+        savedIndex != null && savedIndex >= 0 && savedIndex < channels.length
+        ? savedIndex
+        : 0;
     await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
     await controller.setBackgroundColor(Colors.black);
     await controller.setUserAgent(
@@ -126,6 +124,7 @@ class _TvPageState extends State<TvPage> {
   Future<void> loadChannel(int index) async {
     if (channels.isEmpty) return;
     currentChannelIndex = (index + channels.length) % channels.length;
+    await ChannelStorage.instance.saveSelectedChannelIndex(currentChannelIndex);
     final channel = channels[currentChannelIndex];
     if (mounted) {
       setState(() => status = '正在加载：${channel.name}');
@@ -154,7 +153,6 @@ class _TvPageState extends State<TvPage> {
 
   void showHint(String text, {bool initial = false}) {
     hintTimer?.cancel();
-
     setState(() {
       lastAction = text;
       hintVisible = true;

@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:lejutv/splash_page.dart';
+import 'package:lejutv/global.dart';
+import 'package:lejutv/page/splash_page.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:bot_toast/bot_toast.dart';
+import 'package:get/get.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+final easyLoad = EasyLoading.init();
+final botToast = BotToastInit();
 
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
+void main() => Global.init().then(
+  (e) => runApp(
+    GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        child = easyLoad(context, child);
+        child = botToast(context, child);
+        return child;
+      },
       home: SplashPage(),
-    );
-  }
-}
+    ),
+  ),
+);
