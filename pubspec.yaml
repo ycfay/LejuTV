@@ -69,8 +69,10 @@ flutter:
     - assets/data/channels.json
     - assets/imgaes/logo.png
     - assets/audio/opening.mp3
+    - assets/remote/
   shaders:
     - assets/shaders/background.frag
+
 
 flutter_launcher_icons:
   android: true

@@ -228,6 +228,8 @@ class _TvPageState extends State<TvPage> {
       if (!mounted) return;
       await showDialog<void>(
         context: context,
+        barrierDismissible: false,
+        requestFocus: true,
         builder: (_) => ChannelManagerDialog(
           address: address,
           channels: channels,

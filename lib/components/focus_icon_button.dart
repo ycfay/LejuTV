@@ -7,6 +7,7 @@ class FocusIconButton extends StatefulWidget {
     required this.tooltip,
     required this.onPressed,
     this.iconSize = 25,
+    this.focusColor = const Color.fromARGB(255, 249, 250, 250),
     super.key,
   });
 
@@ -14,6 +15,7 @@ class FocusIconButton extends StatefulWidget {
   final String tooltip;
   final VoidCallback onPressed;
   final double iconSize;
+  final Color focusColor;
 
   @override
   State<FocusIconButton> createState() => _FocusIconButtonState();
@@ -52,7 +54,11 @@ class _FocusIconButtonState extends State<FocusIconButton> {
         focusNode: _focusNode,
         tooltip: widget.tooltip,
         onPressed: widget.onPressed,
-        icon: Icon(widget.icon, size: widget.iconSize),
+        icon: Icon(
+          widget.icon,
+          size: widget.iconSize,
+          color: widget.focusColor,
+        ),
         color: Colors.white,
       ),
     );
