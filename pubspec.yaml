@@ -62,6 +62,8 @@ flutter:
   assets:
     - assets/js/default_video_resize.js
     - assets/data/channels.json
+  shaders:
+    - assets/shaders/background.frag
 
 flutter_launcher_icons:
   android: true
