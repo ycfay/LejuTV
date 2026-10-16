@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lejutv/graphics/shader_manager.dart';
@@ -17,12 +18,16 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+  late final AudioPlayer _openingPlayer;
   Future<void>? _shaderLoad;
   bool _isOpening = false;
+  bool _audioReleased = false;
 
   @override
   void initState() {
     super.initState();
+    _openingPlayer = AudioPlayer();
+    unawaited(_playOpeningMusic());
     _shaderLoad = ShaderManager.load();
     _controller = AnimationController(
       vsync: this,
@@ -34,6 +39,7 @@ class _SplashPageState extends State<SplashPage>
     if (!mounted || _isOpening) return;
     _isOpening = true;
     _controller.stop();
+    unawaited(_releaseOpeningMusic());
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
         pageBuilder: (_, _, _) => const StartPage(),
@@ -47,7 +53,36 @@ class _SplashPageState extends State<SplashPage>
   @override
   void dispose() {
     _controller.dispose();
+    unawaited(_releaseOpeningMusic());
     super.dispose();
+  }
+
+  Future<void> _playOpeningMusic() async {
+    try {
+      debugPrint('[开场音乐] 开始初始化播放器');
+
+      await _openingPlayer.setReleaseMode(ReleaseMode.stop);
+      await _openingPlayer.setVolume(1.0);
+
+      debugPrint('[开场音乐] 开始播放 opening.mp3');
+
+      await _openingPlayer.play(AssetSource('audio/opening.mp3'));
+
+      debugPrint('[开场音乐] 播放命令已执行');
+    } catch (e, stackTrace) {
+      debugPrint('[开场音乐] 播放失败: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> _releaseOpeningMusic() async {
+    if (_audioReleased) return;
+    _audioReleased = true;
+    try {
+      await _openingPlayer.stop();
+    } finally {
+      await _openingPlayer.dispose();
+    }
   }
 
   @override
@@ -89,7 +124,7 @@ class _SplashPageState extends State<SplashPage>
                   const Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 50,
+                    bottom: 100,
                     child: Text(
                       '按下控制器上的确认键继续',
                       textAlign: TextAlign.center,
@@ -164,19 +199,17 @@ class _Logo extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            width: 60,
+            height: 60,
             decoration: const BoxDecoration(
               color: Color(0xFFF7F5F0),
               shape: BoxShape.circle,
               boxShadow: [BoxShadow(color: Color(0x99FFFFFF), blurRadius: 18)],
             ),
-            child: const Text(
-              'LeJuTV',
-              style: TextStyle(
-                color: Color(0xFF17191C),
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+            child: ClipOval(
+              child: Transform.scale(
+                scale: 1.3, // 放大图片，修改这里
+                child: Image.asset('assets/imgaes/logo.png', fit: BoxFit.cover),
               ),
             ),
           ),
