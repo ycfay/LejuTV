@@ -26,7 +26,7 @@ class ChannelStorage {
   Future<List<Channel>> getChannels() async {
     final cached = BaseStorage.instance.getObject(_storageKey);
     final cachedChannels = _decodeChannels(cached);
-    if (cachedChannels != null && cachedChannels.isNotEmpty) {
+    if (cachedChannels != null) {
       return cachedChannels;
     }
 
@@ -41,6 +41,42 @@ class ChannelStorage {
       channels.map((channel) => channel.toJson()).toList(growable: false),
     );
     return channels;
+  }
+
+  Future<bool> addChannel(Channel channel) async {
+    final channels = await getChannels();
+    if (channels.any((item) => item.url == channel.url)) return false;
+    return _saveChannels([...channels, channel]);
+  }
+
+  Future<bool> deleteChannel(String url) async {
+    final channels = await getChannels();
+    final remaining = channels.where((item) => item.url != url).toList();
+    if (remaining.length == channels.length) return false;
+    return _saveChannels(remaining);
+  }
+
+  Future<int> clearChannels() async {
+    final channels = await getChannels();
+    if (channels.isEmpty) return 0;
+    await _saveChannels(const []);
+    return channels.length;
+  }
+
+  Future<int> restoreDefaults() async {
+    final assetJson = await rootBundle.loadString(_assetPath);
+    final channels =
+        _decodeChannels(jsonDecode(assetJson)) ?? const <Channel>[];
+    if (channels.isEmpty) return 0;
+    await _saveChannels(channels);
+    return channels.length;
+  }
+
+  Future<bool> _saveChannels(List<Channel> channels) {
+    return BaseStorage.instance.setObject(
+      _storageKey,
+      channels.map((channel) => channel.toJson()).toList(growable: false),
+    );
   }
 
   List<Channel>? _decodeChannels(Object? value) {

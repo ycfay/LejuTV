@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lejutv/model/channel.dart';
 import 'package:lejutv/stores/channel.storage.dart';
+import 'package:lejutv/remote_http_server.dart';
+import 'package:lejutv/widgets/channel_manager_dialog.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -28,6 +30,7 @@ class _TvPageState extends State<TvPage> {
   List<Channel> channels = [];
   int currentChannelIndex = 0;
   final FocusNode focusNode = FocusNode();
+  final RemoteHttpServer remoteServer = RemoteHttpServer();
 
   Timer? hintTimer;
   Timer? wheelTimer;
@@ -43,12 +46,8 @@ class _TvPageState extends State<TvPage> {
 
   static const actions = [
     ('无', '无', ''),
-    ('点赞', '赞 / 取消赞', 'z'),
+    ('频道管理', '无', 'b'),
     ('收藏', '收藏 / 取消收藏', 'c'),
-    ('关注', '关注 / 取消关注', 'g'),
-    ('评论', '评论', 'x'),
-    ('弹幕', '弹幕开关', 'b'),
-    ('清屏', '清屏', 'j'),
     ('全屏', '网页内全屏', 'y'),
   ];
 
@@ -209,21 +208,57 @@ class _TvPageState extends State<TvPage> {
     final action = actions[index];
     final shortcut = action.$3;
 
+    if (shortcut == 'b') {
+      await openChannelManager();
+      return;
+    }
+
     if (shortcut.isNotEmpty) {
-      const codes = {
-        'z': 90,
-        'c': 67,
-        'g': 71,
-        'x': 88,
-        'b': 66,
-        'j': 74,
-        'y': 89,
-      };
+      const codes = {'c': 67, 'y': 89};
 
       await sendKey(shortcut, 'Key${shortcut.toUpperCase()}', codes[shortcut]!);
     }
 
     showHint(action.$2);
+  }
+
+  Future<void> openChannelManager() async {
+    try {
+      final address = await remoteServer.start();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (_) => ChannelManagerDialog(
+          address: address,
+          channels: channels,
+          onChanged: reloadChannels,
+        ),
+      );
+      await reloadChannels();
+    } catch (error) {
+      if (mounted) showHint('频道管理启动失败：$error');
+    } finally {
+      await remoteServer.stop();
+    }
+    if (mounted) focusNode.requestFocus();
+  }
+
+  Future<void> reloadChannels() async {
+    final currentUrl =
+        channels.isNotEmpty && currentChannelIndex < channels.length
+        ? channels[currentChannelIndex].url
+        : null;
+    final next = await ChannelStorage.instance.getChannels();
+    if (!mounted) return;
+    setState(() {
+      channels = next;
+      currentChannelIndex = currentUrl == null
+          ? 0
+          : next
+                .indexWhere((channel) => channel.url == currentUrl)
+                .clamp(0, math.max(0, next.length - 1));
+    });
+    if (channels.isNotEmpty) await loadChannel(currentChannelIndex);
   }
 
   void showWheel(int direction) {
@@ -387,6 +422,7 @@ class _TvPageState extends State<TvPage> {
     hintTimer?.cancel();
     wheelTimer?.cancel();
     focusNode.dispose();
+    unawaited(remoteServer.stop());
     super.dispose();
   }
 
