@@ -3,9 +3,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lejutv/core/remote_http_server.dart';
 import 'package:lejutv/model/channel.dart';
 import 'package:lejutv/stores/channel.storage.dart';
-import 'package:lejutv/remote_http_server.dart';
 import 'package:lejutv/widgets/channel_manager_dialog.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -40,6 +40,7 @@ class _TvPageState extends State<TvPage> {
 
   bool hintVisible = true;
   bool wheelVisible = false;
+  bool _channelManagerOpen = false;
 
   int selectedIndex = 0;
   DateTime? lastBackPress;
@@ -102,7 +103,9 @@ class _TvPageState extends State<TvPage> {
           unawaited(injectVideoResizeScript());
           if (mounted) {
             setState(() => status = '加载完成');
-            focusNode.requestFocus();
+            if (!_channelManagerOpen) {
+              focusNode.requestFocus();
+            }
           }
         },
         onWebResourceError: (error) {
@@ -223,6 +226,7 @@ class _TvPageState extends State<TvPage> {
   }
 
   Future<void> openChannelManager() async {
+    _channelManagerOpen = true;
     try {
       final address = await remoteServer.start();
       if (!mounted) return;
@@ -241,6 +245,7 @@ class _TvPageState extends State<TvPage> {
       if (mounted) showHint('频道管理启动失败：$error');
     } finally {
       await remoteServer.stop();
+      _channelManagerOpen = false;
     }
     if (mounted) focusNode.requestFocus();
   }

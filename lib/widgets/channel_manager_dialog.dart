@@ -25,6 +25,9 @@ class ChannelManagerDialog extends StatefulWidget {
 
 class _ChannelManagerDialogState extends State<ChannelManagerDialog> {
   late List<Channel> channels;
+  final FocusScopeNode _dialogFocusScope = FocusScopeNode(
+    debugLabel: 'channel-manager-dialog',
+  );
 
   @override
   void initState() {
@@ -34,6 +37,7 @@ class _ChannelManagerDialogState extends State<ChannelManagerDialog> {
 
   @override
   void dispose() {
+    _dialogFocusScope.dispose();
     super.dispose();
   }
 
@@ -62,6 +66,7 @@ class _ChannelManagerDialogState extends State<ChannelManagerDialog> {
     await ChannelStorage.instance.restoreDefaults();
     BotToast.showText(text: "已恢复默认频道");
     await refresh();
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -73,65 +78,70 @@ class _ChannelManagerDialogState extends State<ChannelManagerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return FocusTraversalGroup(
-      policy: OrderedTraversalPolicy(),
-      child: AlertDialog(
-        backgroundColor: const Color(0xff17202d),
-        title: const Text('频道管理', style: TextStyle(color: Colors.white)),
-        content: SizedBox(
-          width: math.min(MediaQuery.sizeOf(context).width * .84, 620),
-          height: math.min(MediaQuery.sizeOf(context).height * .72, 560),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Text(
-                  '局域网管理地址：${widget.address}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Text(
-                    '${channels.length} 个频道',
-                    style: const TextStyle(color: Colors.white70),
+    return FocusScope(
+      node: _dialogFocusScope,
+      autofocus: true,
+      onKeyEvent: onDialogKey,
+      child: FocusTraversalGroup(
+        policy: OrderedTraversalPolicy(),
+        child: AlertDialog(
+          backgroundColor: const Color(0xff17202d),
+          title: const Text('频道管理', style: TextStyle(color: Colors.white)),
+          content: SizedBox(
+            width: math.min(MediaQuery.sizeOf(context).width * .84, 620),
+            height: math.min(MediaQuery.sizeOf(context).height * .72, 560),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Text(
+                    '局域网管理地址：${widget.address}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                   ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: restoreDefaults,
-                    child: const Text('恢复默认'),
-                  ),
-                ],
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: channels.length,
-                  itemBuilder: (_, index) {
-                    final channel = channels[index];
-                    return ListTile(
-                      dense: true,
-                      title: Text(
-                        channel.name,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        channel.url,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white54),
-                      ),
-                      trailing: FocusIconButton(
-                        icon: Icons.delete_outline,
-                        onPressed: () => delete(channel),
-                        tooltip: '删除',
-                      ),
-                    );
-                  },
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text(
+                      '${channels.length} 个频道',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: restoreDefaults,
+                      child: const Text('恢复默认'),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: channels.length,
+                    itemBuilder: (_, index) {
+                      final channel = channels[index];
+                      return ListTile(
+                        dense: true,
+                        title: Text(
+                          channel.name,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          channel.url,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white54),
+                        ),
+                        trailing: FocusIconButton(
+                          icon: Icons.delete_outline,
+                          onPressed: () => delete(channel),
+                          tooltip: '删除',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
