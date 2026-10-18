@@ -120,7 +120,13 @@ class _SplashPageState extends State<SplashPage>
                     )
                   else
                     const _FallbackSplash(),
-                  Center(child: _Logo(progress: _controller.value)),
+                  Center(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _openHome,
+                      child: _Logo(progress: _controller.value),
+                    ),
+                  ),
                   const Positioned(
                     left: 0,
                     right: 0,

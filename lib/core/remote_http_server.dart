@@ -7,6 +7,8 @@ import 'package:lejutv/stores/channel.storage.dart';
 
 /// Small LAN server used by the channel maintenance page.
 class RemoteHttpServer {
+  static const MethodChannel _networkChannel = MethodChannel('lejutv/network');
+
   RemoteHttpServer({ChannelStorage? storage})
     : _storage = storage ?? ChannelStorage.instance;
 
@@ -35,6 +37,21 @@ class RemoteHttpServer {
   }
 
   Future<String> _findHost() async {
+    // Android uses the same isUp/isLoopback filtering as the native TVAuto
+    // implementation. Dart's NetworkInterface API does not expose isUp.
+    if (Platform.isAndroid) {
+      try {
+        final host = await _networkChannel.invokeMethod<String>(
+          'localIpv4Address',
+        );
+        if (host != null && host.isNotEmpty) return host;
+      } on MissingPluginException {
+        // Fall through to the portable implementation.
+      } on PlatformException {
+        // Fall through to the portable implementation.
+      }
+    }
+
     try {
       final interfaces = await NetworkInterface.list(
         type: InternetAddressType.IPv4,
