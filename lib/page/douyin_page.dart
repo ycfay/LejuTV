@@ -3,8 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:lejutv/components/web_view_component.dart';
 
 class DouyinPage extends StatefulWidget {
   const DouyinPage({super.key});
@@ -29,6 +29,7 @@ class _DouyinPageState extends State<DouyinPage> {
 
   Timer? hintTimer;
   Timer? wheelTimer;
+  Timer? statusTimer;
 
   String status = '正在加载抖音...';
   String lastAction = '就绪';
@@ -54,54 +55,7 @@ class _DouyinPageState extends State<DouyinPage> {
   void initState() {
     super.initState();
 
-    controller = WebViewController();
-    unawaited(initializeWebView());
-
     showHint('准备就绪', initial: true);
-  }
-
-  Future<void> initializeWebView() async {
-    await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
-    await controller.setBackgroundColor(Colors.black);
-    await controller.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-      'AppleWebKit/537.36 (KHTML, like Gecko) '
-      'Chrome/116.0.0.0 Safari/537.36',
-    );
-
-    final platformController = controller.platform;
-    if (platformController is AndroidWebViewController) {
-      await platformController.setUseWideViewPort(true);
-      await platformController.enableZoom(false);
-      await platformController.setMediaPlaybackRequiresUserGesture(false);
-    }
-
-    await controller.setNavigationDelegate(
-      NavigationDelegate(
-        onPageStarted: (url) {
-          if (mounted) {
-            setState(() => status = '正在加载...');
-          }
-        },
-        onPageFinished: (url) {
-          if (mounted) {
-            setState(() => status = '加载完成');
-            focusNode.requestFocus();
-          }
-        },
-        onWebResourceError: (error) {
-          debugPrint('失败 URL: ${error.url}');
-          debugPrint('错误码: ${error.errorCode}');
-          debugPrint('错误描述: ${error.description}');
-          debugPrint('主页面错误: ${error.isForMainFrame}');
-
-          if (mounted) {
-            setState(() => status = '加载失败：${error.description}');
-          }
-        },
-      ),
-    );
-    await controller.loadRequest(Uri.parse(homeUrl));
   }
 
   void showHint(String text, {bool initial = false}) {
@@ -347,6 +301,7 @@ class _DouyinPageState extends State<DouyinPage> {
   void dispose() {
     hintTimer?.cancel();
     wheelTimer?.cancel();
+    statusTimer?.cancel();
     focusNode.dispose();
     super.dispose();
   }
@@ -362,7 +317,30 @@ class _DouyinPageState extends State<DouyinPage> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            WebViewWidget(controller: controller),
+            WebViewComponent(
+              initialUrl: homeUrl,
+              onControllerReady: (value) => controller = value,
+              onPageStarted: (_) {
+                statusTimer?.cancel();
+                if (mounted) setState(() => status = '正在加载...');
+              },
+              onPageFinished: (_) {
+                if (mounted) {
+                  setState(() => status = '加载完成');
+                  statusTimer?.cancel();
+                  statusTimer = Timer(const Duration(seconds: 3), () {
+                    if (mounted) setState(() => status = '');
+                  });
+                  focusNode.requestFocus();
+                }
+              },
+              onWebResourceError: (error) {
+                statusTimer?.cancel();
+                if (mounted) {
+                  setState(() => status = '加载失败：${error.description}');
+                }
+              },
+            ),
 
             Positioned(
               left: 12,

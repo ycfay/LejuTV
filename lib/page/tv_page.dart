@@ -7,8 +7,8 @@ import 'package:lejutv/core/remote_http_server.dart';
 import 'package:lejutv/model/channel.dart';
 import 'package:lejutv/stores/channel.storage.dart';
 import 'package:lejutv/widgets/channel_manager_dialog.dart';
-import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:lejutv/components/web_view_component.dart';
 
 class TvPage extends StatefulWidget {
   const TvPage({super.key});
@@ -24,6 +24,7 @@ class _TvPageState extends State<TvPage> {
   //static const String homeUrl = 'https://www.douyin.com/?recommend=1&from_nav=1';
   //static const String homeUrl = 'https://test.ustc.edu.cn/';
   late final WebViewController controller;
+  bool _webViewReady = false;
   static const String _videoResizeScriptAsset =
       'assets/js/default_video_resize.js';
   String? _videoResizeScript;
@@ -34,6 +35,7 @@ class _TvPageState extends State<TvPage> {
 
   Timer? hintTimer;
   Timer? wheelTimer;
+  Timer? statusTimer;
 
   String status = '正在加载电视...';
   String lastAction = '就绪';
@@ -56,7 +58,6 @@ class _TvPageState extends State<TvPage> {
   void initState() {
     super.initState();
 
-    controller = WebViewController();
     unawaited(initializeWebView());
 
     showHint('准备就绪', initial: true);
@@ -75,52 +76,9 @@ class _TvPageState extends State<TvPage> {
         savedIndex != null && savedIndex >= 0 && savedIndex < channels.length
         ? savedIndex
         : 0;
-    await controller.setJavaScriptMode(JavaScriptMode.unrestricted);
-    await controller.setBackgroundColor(Colors.black);
-    await controller.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-      'AppleWebKit/537.36 (KHTML, like Gecko) '
-      'Chrome/116.0.0.0 Safari/537.36',
-    );
-
-    final platformController = controller.platform;
-    if (platformController is AndroidWebViewController) {
-      await platformController.setUseWideViewPort(true);
-
-      await platformController.enableZoom(false);
-      await platformController.setMediaPlaybackRequiresUserGesture(false);
+    if (_webViewReady && channels.isNotEmpty) {
+      await loadChannel(currentChannelIndex);
     }
-
-    await controller.setNavigationDelegate(
-      NavigationDelegate(
-        onPageStarted: (url) {
-          if (mounted) {
-            setState(() => status = '正在加载...');
-          }
-          unawaited(injectVideoResizeScript());
-        },
-        onPageFinished: (url) {
-          unawaited(injectVideoResizeScript());
-          if (mounted) {
-            setState(() => status = '加载完成');
-            if (!_channelManagerOpen) {
-              focusNode.requestFocus();
-            }
-          }
-        },
-        onWebResourceError: (error) {
-          debugPrint('失败 URL: ${error.url}');
-          debugPrint('错误码: ${error.errorCode}');
-          debugPrint('错误描述: ${error.description}');
-          debugPrint('主页面错误: ${error.isForMainFrame}');
-
-          if (mounted) {
-            setState(() => status = '加载失败：${error.description}');
-          }
-        },
-      ),
-    );
-    await loadChannel(currentChannelIndex);
   }
 
   Future<void> loadChannel(int index) async {
@@ -428,6 +386,7 @@ class _TvPageState extends State<TvPage> {
   void dispose() {
     hintTimer?.cancel();
     wheelTimer?.cancel();
+    statusTimer?.cancel();
     focusNode.dispose();
     unawaited(remoteServer.stop());
     super.dispose();
@@ -444,7 +403,37 @@ class _TvPageState extends State<TvPage> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            WebViewWidget(controller: controller),
+            WebViewComponent(
+              onControllerReady: (value) {
+                controller = value;
+                _webViewReady = true;
+                if (channels.isNotEmpty) {
+                  unawaited(loadChannel(currentChannelIndex));
+                }
+              },
+              onPageStarted: (_) {
+                statusTimer?.cancel();
+                if (mounted) setState(() => status = '正在加载...');
+                unawaited(injectVideoResizeScript());
+              },
+              onPageFinished: (_) {
+                unawaited(injectVideoResizeScript());
+                if (mounted) {
+                  setState(() => status = '加载完成');
+                  statusTimer?.cancel();
+                  statusTimer = Timer(const Duration(seconds: 3), () {
+                    if (mounted) setState(() => status = '');
+                  });
+                  if (!_channelManagerOpen) focusNode.requestFocus();
+                }
+              },
+              onWebResourceError: (error) {
+                statusTimer?.cancel();
+                if (mounted) {
+                  setState(() => status = '加载失败：${error.description}');
+                }
+              },
+            ),
 
             Positioned(
               left: 12,
