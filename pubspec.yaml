@@ -80,12 +80,12 @@ flutter:
 flutter_launcher_icons:
   android: true
   image_path: "assets/imgaes/logo.png"
-  adaptive_icon_background: "#101820"
+  adaptive_icon_background: "#00000000"
   adaptive_icon_foreground: "assets/imgaes/logo.png"
   adaptive_icon_foreground_inset: 18
   android_12:
     image: "assets/imgaes/logo.png"
-    icon_background_color: "#101820"
+    icon_background_color: "#00000000"
 
   # To add assets to your application, add an assets section, like this:
   # assets:
