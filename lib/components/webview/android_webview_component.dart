@@ -1,15 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:lejutv/components/webview/webview_component.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-typedef WebViewCallback = FutureOr<void> Function(String url);
-typedef WebViewErrorCallback = FutureOr<void> Function(WebResourceError error);
-
 /// Shared WebView setup used by all pages in the app.
-class WebViewComponent extends StatefulWidget {
-  const WebViewComponent({
+class AndroidWebViewComponent extends StatefulWidget {
+  const AndroidWebViewComponent({
     super.key,
     this.initialUrl,
     this.onControllerReady,
@@ -25,10 +23,11 @@ class WebViewComponent extends StatefulWidget {
   final WebViewErrorCallback? onWebResourceError;
 
   @override
-  State<WebViewComponent> createState() => _WebViewComponentState();
+  State<AndroidWebViewComponent> createState() =>
+      _AndroidWebViewComponentState();
 }
 
-class _WebViewComponentState extends State<WebViewComponent> {
+class _AndroidWebViewComponentState extends State<AndroidWebViewComponent> {
   late final WebViewController _controller;
 
   @override

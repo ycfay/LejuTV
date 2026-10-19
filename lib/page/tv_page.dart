@@ -8,7 +8,7 @@ import 'package:lejutv/model/channel.dart';
 import 'package:lejutv/stores/channel.storage.dart';
 import 'package:lejutv/widgets/channel_manager_dialog.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:lejutv/components/web_view_component.dart';
+import 'package:lejutv/components/webview/webview_component.dart';
 
 class TvPage extends StatefulWidget {
   const TvPage({super.key});

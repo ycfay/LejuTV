@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:lejutv/components/web_view_component.dart';
+import 'package:lejutv/components/webview/webview_component.dart';
 
 class KuaishouPage extends StatefulWidget {
   const KuaishouPage({super.key});
