@@ -46,7 +46,7 @@ class _KuaishouPageState extends State<KuaishouPage> {
     ('评论', '评论', 'x'),
     ('弹幕', '弹幕开关', 'b'),
     ('清屏', '清屏', 'j'),
-    ('全屏', '网页内全屏', 'y'),
+    ('全屏', '网页内全屏', 'h'),
   ];
 
   @override
@@ -111,6 +111,104 @@ class _KuaishouPageState extends State<KuaishouPage> {
     }
   }
 
+  Future<void> monitorVideoElements() async {
+    const js = r'''
+  (() => {
+    if (window.__lejuVideoMonitor) {
+      clearInterval(window.__lejuVideoMonitor);
+    }
+
+    let lastCount = -1;
+    let attempts = 0;
+
+    window.__lejuVideoMonitor = setInterval(() => {
+      attempts++;
+
+      const videos = [...document.querySelectorAll('video')];
+
+      if (videos.length !== lastCount) {
+        lastCount = videos.length;
+
+        console.log('[LejuTV] 视频数量变化:', videos.length);
+
+        videos.forEach((v, i) => {
+          console.log('[LejuTV] 视频状态', i, JSON.stringify({
+            muted: v.muted,
+            volume: v.volume,
+            paused: v.paused,
+            readyState: v.readyState,
+            currentTime: v.currentTime,
+            src: v.currentSrc
+          }));
+        });
+      }
+
+      if (attempts >= 60) {
+        clearInterval(window.__lejuVideoMonitor);
+        window.__lejuVideoMonitor = null;
+        console.log('[LejuTV] 视频监控结束');
+      }
+    }, 500);
+  })();
+  ''';
+
+    try {
+      await controller.runJavaScript(js);
+    } catch (e) {
+      debugPrint('[LejuTV] 视频监控失败: $e');
+    }
+  }
+
+  Future<void> sendOpenSound() async {
+    const js = r'''
+  (() => {
+    if (window.__lejuSoundTimer) {
+      clearInterval(window.__lejuSoundTimer);
+    }
+
+    let attempts = 0;
+
+    window.__lejuSoundTimer = setInterval(async () => {
+      attempts++;
+
+      const videos = [...document.querySelectorAll('video')]
+        .filter(v => v.currentSrc || v.src);
+
+      if (videos.length > 0) {
+        for (const video of videos) {
+          video.muted = false;
+          video.volume = 1;
+
+          try {
+            await video.play();
+            console.log('[LejuTV] 播放请求成功', {
+              muted: video.muted,
+              volume: video.volume,
+              paused: video.paused,
+              readyState: video.readyState,
+              currentTime: video.currentTime
+            });
+          } catch (e) {
+            console.log('[LejuTV] 播放请求失败:', e.name, e.message);
+          }
+        }
+      }
+
+      if (attempts >= 60) {
+        clearInterval(window.__lejuSoundTimer);
+        window.__lejuSoundTimer = null;
+      }
+    }, 500);
+  })();
+  ''';
+
+    try {
+      await controller.runJavaScript(js);
+    } catch (e) {
+      debugPrint('[LejuTV] 开启声音失败: $e');
+    }
+  }
+
   Future<void> executeAction(int index) async {
     final action = actions[index];
     final shortcut = action.$3;
@@ -123,7 +221,7 @@ class _KuaishouPageState extends State<KuaishouPage> {
         'x': 88,
         'b': 66,
         'j': 74,
-        'y': 89,
+        'h': 72,
       };
 
       await sendKey(shortcut, 'Key${shortcut.toUpperCase()}', codes[shortcut]!);
@@ -330,6 +428,8 @@ class _KuaishouPageState extends State<KuaishouPage> {
                     if (mounted) setState(() => status = '');
                   });
                   focusNode.requestFocus();
+                  //monitorVideoElements();
+                  sendOpenSound();
                 }
               },
               onWebResourceError: (error) {
