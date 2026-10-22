@@ -30,12 +30,22 @@ class _TvPageState extends State<TvPage> {
   String? _videoResizeScript;
   List<Channel> channels = [];
   int currentChannelIndex = 0;
+  String? _loadedChannelUrl;
   final FocusNode focusNode = FocusNode();
+  final FocusNode sidebarFocusNode = FocusNode();
   final RemoteHttpServer remoteServer = RemoteHttpServer();
 
   Timer? hintTimer;
   Timer? wheelTimer;
   Timer? statusTimer;
+  Timer? sidebarTimer;
+  // Do not persist this transient drawer's offset in PageStorage. Restoring a
+  // stale offset is what causes the list to jump back to the top after it has
+  // been positioned on the current channel.
+  final ScrollController sidebarScrollController = ScrollController(
+    keepScrollOffset: false,
+  );
+  final Map<int, GlobalKey> sidebarItemKeys = <int, GlobalKey>{};
 
   String status = '正在加载电视...';
   String lastAction = '就绪';
@@ -43,6 +53,10 @@ class _TvPageState extends State<TvPage> {
   bool hintVisible = true;
   bool wheelVisible = false;
   bool _channelManagerOpen = false;
+  bool sidebarVisible = false;
+  bool sidebarPositioned = false;
+  int sidebarSelectedIndex = 0;
+  DateTime? _lastSidebarOpen;
 
   int selectedIndex = 0;
   DateTime? lastBackPress;
@@ -83,13 +97,20 @@ class _TvPageState extends State<TvPage> {
 
   Future<void> loadChannel(int index) async {
     if (channels.isEmpty) return;
-    currentChannelIndex = (index + channels.length) % channels.length;
+    final nextIndex = (index + channels.length) % channels.length;
+    final nextChannel = channels[nextIndex];
+    if (_loadedChannelUrl == nextChannel.url) {
+      currentChannelIndex = nextIndex;
+      return;
+    }
+    currentChannelIndex = nextIndex;
     await ChannelStorage.instance.saveSelectedChannelIndex(currentChannelIndex);
     final channel = channels[currentChannelIndex];
     if (mounted) {
       setState(() => status = '正在加载：${channel.name}');
     }
     await controller.loadRequest(Uri.parse(channel.url));
+    _loadedChannelUrl = channel.url;
     showHint('正在播放：${channel.name}');
   }
 
@@ -273,6 +294,112 @@ class _TvPageState extends State<TvPage> {
     }
   }
 
+  void openSidebar() {
+    if (channels.isEmpty) return;
+    final now = DateTime.now();
+    if (_lastSidebarOpen != null &&
+        now.difference(_lastSidebarOpen!) < const Duration(milliseconds: 350)) {
+      return;
+    }
+    _lastSidebarOpen = now;
+    // 遥控器确认键可能同时产生 KeyDown/KeyRepeat；避免重复打开重建
+    // ListView，导致滚动位置被重置到顶部。
+    if (sidebarVisible) {
+      refreshSidebarTimer();
+      return;
+    }
+    setState(() {
+      sidebarVisible = true;
+      sidebarPositioned = false;
+      sidebarSelectedIndex = currentChannelIndex;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && sidebarVisible) sidebarFocusNode.requestFocus();
+      ensureSidebarSelectionVisible();
+    });
+    // 抽屉和 ListView 同时首次布局时，ListView 可能先恢复到 offset=0；
+    // 在布局稳定后再校正一次，确保当前频道始终可见。
+    for (final delay in const [80, 240, 500]) {
+      Future<void>.delayed(Duration(milliseconds: delay), () {
+        if (mounted && sidebarVisible && !sidebarPositioned &&
+            sidebarScrollController.hasClients &&
+            sidebarScrollController.position.maxScrollExtent > 0) {
+          ensureSidebarSelectionVisible();
+          final target = (sidebarSelectedIndex * 72.0 -
+                  sidebarScrollController.position.viewportDimension / 2 +
+                  36.0)
+              .clamp(0.0, sidebarScrollController.position.maxScrollExtent)
+              .toDouble();
+          if ((sidebarScrollController.offset - target).abs() < 2) {
+            setState(() => sidebarPositioned = true);
+          }
+        }
+      });
+    }
+    refreshSidebarTimer();
+  }
+
+  void refreshSidebarTimer() {
+    sidebarTimer?.cancel();
+    sidebarTimer = Timer(const Duration(seconds: 5), closeSidebar);
+  }
+
+  void closeSidebar() {
+    sidebarTimer?.cancel();
+    if (mounted && sidebarVisible) {
+      setState(() => sidebarVisible = false);
+      focusNode.requestFocus();
+    }
+  }
+
+  void moveSidebarSelection(int delta) {
+    final count = channels.length + 1;
+    setState(() {
+      sidebarSelectedIndex = (sidebarSelectedIndex + delta + count) % count;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ensureSidebarSelectionVisible();
+    });
+    refreshSidebarTimer();
+  }
+
+  void ensureSidebarSelectionVisible() {
+    debugPrint(
+      'scroll offset=${sidebarScrollController.hasClients ? sidebarScrollController.offset : -1} '
+      'max=${sidebarScrollController.hasClients ? sidebarScrollController.position.maxScrollExtent : -1} '
+      'selected=$sidebarSelectedIndex',
+    );
+    if (!sidebarScrollController.hasClients) return;
+    // During the first frame the viewport may report maxScrollExtent=0 even
+    // though the list has not finished laying out. Never overwrite a valid
+    // offset with zero during that transient state.
+    if (sidebarSelectedIndex > 0 &&
+        sidebarScrollController.position.maxScrollExtent <= 0) {
+      return;
+    }
+    const itemExtent = 72.0;
+    final viewport = sidebarScrollController.position.viewportDimension;
+    final target =
+        (sidebarSelectedIndex * itemExtent - viewport / 2 + itemExtent / 2)
+            .clamp(0.0, sidebarScrollController.position.maxScrollExtent)
+            .toDouble();
+    if ((sidebarScrollController.offset - target).abs() > 1) {
+      sidebarScrollController.jumpTo(target);
+    }
+  }
+
+  Future<void> confirmSidebarSelection() async {
+    refreshSidebarTimer();
+    if (sidebarSelectedIndex < channels.length) {
+      final index = sidebarSelectedIndex;
+      closeSidebar();
+      await loadChannel(index);
+    } else {
+      closeSidebar();
+      await openChannelManager();
+    }
+  }
+
   Future<void> handleBack() async {
     final now = DateTime.now();
 
@@ -297,6 +424,33 @@ class _TvPageState extends State<TvPage> {
     }
 
     final key = event.logicalKey;
+
+    if (sidebarVisible) {
+      if (key == LogicalKeyboardKey.arrowUp) {
+        moveSidebarSelection(-1);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowDown) {
+        moveSidebarSelection(1);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.enter ||
+          key == LogicalKeyboardKey.select ||
+          key == LogicalKeyboardKey.numpadEnter ||
+          key == LogicalKeyboardKey.space) {
+        unawaited(confirmSidebarSelection());
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowLeft ||
+          key == LogicalKeyboardKey.escape ||
+          key == LogicalKeyboardKey.goBack ||
+          key == LogicalKeyboardKey.backspace) {
+        closeSidebar();
+        return KeyEventResult.handled;
+      }
+      refreshSidebarTimer();
+      return KeyEventResult.handled;
+    }
 
     if (wheelVisible) {
       if (key == LogicalKeyboardKey.arrowLeft) {
@@ -354,8 +508,7 @@ class _TvPageState extends State<TvPage> {
         key == LogicalKeyboardKey.select ||
         key == LogicalKeyboardKey.numpadEnter ||
         key == LogicalKeyboardKey.space) {
-      sendKey(' ', 'Space', 32);
-      showHint('暂停 / 播放');
+      openSidebar();
       return KeyEventResult.handled;
     }
 
@@ -387,7 +540,10 @@ class _TvPageState extends State<TvPage> {
     hintTimer?.cancel();
     wheelTimer?.cancel();
     statusTimer?.cancel();
+    sidebarTimer?.cancel();
+    sidebarScrollController.dispose();
     focusNode.dispose();
+    sidebarFocusNode.dispose();
     unawaited(remoteServer.stop());
     super.dispose();
   }
@@ -483,6 +639,17 @@ class _TvPageState extends State<TvPage> {
                 ),
               ),
 
+            if (sidebarVisible)
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: !sidebarPositioned,
+                  child: Opacity(
+                    opacity: sidebarPositioned ? 1 : 0,
+                    child: buildSidebar(),
+                  ),
+                ),
+              ),
+
             if (wheelVisible) Center(child: buildWheel()),
           ],
         ),
@@ -537,6 +704,162 @@ class _TvPageState extends State<TvPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget buildSidebar() {
+    debugPrint(
+      'openSidebar visible=$sidebarVisible '
+      'current=$currentChannelIndex selected=$sidebarSelectedIndex',
+    );
+    final width = (MediaQuery.sizeOf(context).width * 0.36)
+        .clamp(260.0, 420.0)
+        .toDouble();
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Focus(
+        focusNode: sidebarFocusNode,
+        onKeyEvent: (node, event) {
+          // 主页面 Focus 负责业务处理；侧边栏挂载后由它独占遥控器按键，
+          // 避免确认键再次冒泡到 WebView/主页面造成菜单状态冲突。
+          if (event is KeyDownEvent || event is KeyRepeatEvent) {
+            final key = event.logicalKey;
+            if (event is KeyRepeatEvent &&
+                (key == LogicalKeyboardKey.enter ||
+                    key == LogicalKeyboardKey.select ||
+                    key == LogicalKeyboardKey.numpadEnter ||
+                    key == LogicalKeyboardKey.space)) {
+              return KeyEventResult.handled;
+            }
+            if (key == LogicalKeyboardKey.arrowUp) {
+              moveSidebarSelection(-1);
+            } else if (key == LogicalKeyboardKey.arrowDown) {
+              moveSidebarSelection(1);
+            } else if (key == LogicalKeyboardKey.enter ||
+                key == LogicalKeyboardKey.select ||
+                key == LogicalKeyboardKey.numpadEnter ||
+                key == LogicalKeyboardKey.space) {
+              unawaited(confirmSidebarSelection());
+            } else if (key == LogicalKeyboardKey.arrowLeft ||
+                key == LogicalKeyboardKey.escape ||
+                key == LogicalKeyboardKey.goBack ||
+                key == LogicalKeyboardKey.backspace) {
+              closeSidebar();
+            } else {
+              refreshSidebarTimer();
+            }
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: Material(
+          color: const Color(0xF20B101A),
+          child: SizedBox(
+            width: width,
+            height: double.infinity,
+            child: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 18, 20, 10),
+                    child: Text(
+                      '频道列表',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: sidebarScrollController,
+                      primary: false,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemExtent: 72,
+                      itemCount: channels.length + 1,
+                      itemBuilder: (context, index) {
+                        final isSettings = index == channels.length;
+                        final selected = index == sidebarSelectedIndex;
+                        final title = isSettings
+                            ? '频道管理'
+                            : channels[index].name;
+                        final itemKey = sidebarItemKeys.putIfAbsent(
+                          index,
+                          GlobalKey.new,
+                        );
+                        return AnimatedContainer(
+                          key: itemKey,
+                          duration: const Duration(milliseconds: 120),
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? const Color(0xFF1685E5)
+                                : const Color(0x26FFFFFF),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: selected ? Colors.white70 : Colors.white12,
+                            ),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () {
+                                if (sidebarSelectedIndex != index) {
+                                  setState(() => sidebarSelectedIndex = index);
+                                }
+                                unawaited(confirmSidebarSelection());
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!isSettings)
+                                      Text(
+                                        '${index + 1}',
+                                        style: const TextStyle(
+                                          color: Colors.white54,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    child: Text(
+                      '↑↓ 选择    OK 确认    ← 返回',
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
