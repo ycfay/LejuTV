@@ -12,15 +12,10 @@ class KuaishouPage extends StatefulWidget {
   @override
   State<KuaishouPage> createState() => _KuaishouPageState();
 }
-//https://www.sztv.com.cn/dianshi.shtml?id=7868
-//https://www.douyin.com/?recommend=1&from_nav=1
 
 class _KuaishouPageState extends State<KuaishouPage> {
-  //static const String homeUrl = 'https://www.sztv.com.cn/dianshi.shtml?id=7868';
-  //static const String homeUrl = 'https://www.douyin.com/?recommend=1&from_nav=1';
-  //static const String homeUrl = 'https://test.ustc.edu.cn/';
-  static const String homeUrl = 'https://www.kuaishou.com/';
-  //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
+  static const String homeUrl =
+      'https://www.kuaishou.com/new-reco?source=NewReco';
 
   late final WebViewController controller;
   final FocusNode focusNode = FocusNode();

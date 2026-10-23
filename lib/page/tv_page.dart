@@ -16,13 +16,8 @@ class TvPage extends StatefulWidget {
   @override
   State<TvPage> createState() => _TvPageState();
 }
-//https://www.sztv.com.cn/dianshi.shtml?id=7868
-//https://www.douyin.com/?recommend=1&from_nav=1
 
 class _TvPageState extends State<TvPage> {
-  //static const String homeUrl = 'https://www.sztv.com.cn/dianshi.shtml?id=7868';
-  //static const String homeUrl = 'https://www.douyin.com/?recommend=1&from_nav=1';
-  //static const String homeUrl = 'https://test.ustc.edu.cn/';
   late final WebViewController controller;
   bool _webViewReady = false;
   static const String _videoResizeScriptAsset =
@@ -219,6 +214,12 @@ class _TvPageState extends State<TvPage> {
           onChanged: reloadChannels,
         ),
       );
+      // Mark the overlay as closed before refreshing data.  This prevents a
+      // second back press during the refresh from being mistaken for a back
+      // press while the dialog is still open.
+      _channelManagerOpen = false;
+      // 返回键关闭管理面板后，不要把同一次按键当成播放器的第二次返回。
+      lastBackPress = null;
       await reloadChannels();
     } catch (error) {
       if (mounted) showHint('频道管理启动失败：$error');
@@ -321,15 +322,18 @@ class _TvPageState extends State<TvPage> {
     // 在布局稳定后再校正一次，确保当前频道始终可见。
     for (final delay in const [80, 240, 500]) {
       Future<void>.delayed(Duration(milliseconds: delay), () {
-        if (mounted && sidebarVisible && !sidebarPositioned &&
+        if (mounted &&
+            sidebarVisible &&
+            !sidebarPositioned &&
             sidebarScrollController.hasClients &&
             sidebarScrollController.position.maxScrollExtent > 0) {
           ensureSidebarSelectionVisible();
-          final target = (sidebarSelectedIndex * 72.0 -
-                  sidebarScrollController.position.viewportDimension / 2 +
-                  36.0)
-              .clamp(0.0, sidebarScrollController.position.maxScrollExtent)
-              .toDouble();
+          final target =
+              (sidebarSelectedIndex * 72.0 -
+                      sidebarScrollController.position.viewportDimension / 2 +
+                      36.0)
+                  .clamp(0.0, sidebarScrollController.position.maxScrollExtent)
+                  .toDouble();
           if ((sidebarScrollController.offset - target).abs() < 2) {
             setState(() => sidebarPositioned = true);
           }
@@ -528,6 +532,15 @@ class _TvPageState extends State<TvPage> {
     if (key == LogicalKeyboardKey.escape ||
         key == LogicalKeyboardKey.goBack ||
         key == LogicalKeyboardKey.backspace) {
+      if (_channelManagerOpen) {
+        // A keyboard goBack event can be delivered to this page's focus node
+        // even while the dialog route is visible. Pop the top route (the
+        // manager dialog) instead of treating it as page exit.
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        return KeyEventResult.handled;
+      }
       handleBack();
       return KeyEventResult.handled;
     }

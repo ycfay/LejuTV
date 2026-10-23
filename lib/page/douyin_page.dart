@@ -12,17 +12,10 @@ class DouyinPage extends StatefulWidget {
   @override
   State<DouyinPage> createState() => _DouyinPageState();
 }
-//https://www.sztv.com.cn/dianshi.shtml?id=7868
-//https://www.douyin.com/?recommend=1&from_nav=1
 
 class _DouyinPageState extends State<DouyinPage> {
-  //static const String homeUrl = 'https://www.sztv.com.cn/dianshi.shtml?id=7868';
   static const String homeUrl =
       "https://www.douyin.com/?recommend=1&from_nav=1";
-
-  //static const String homeUrl = 'https://test.ustc.edu.cn/';
-  // Use the official HTTPS entry point instead of the old test endpoint.
-  //static const String homeUrl = 'https://www.yangshipin.cn/tv/home?pid=600001859';
 
   late final WebViewController controller;
   final FocusNode focusNode = FocusNode();
